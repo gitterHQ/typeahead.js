@@ -44,13 +44,13 @@ module.exports = function(grunt) {
     uglify: {
       options: {
         banner: '<%= banner %>',
-        enclose: { 'window.jQuery': '$' }
       },
       bloodhound: {
         options: {
           mangle: false,
           beautify: true,
-          compress: false
+          compress: false,
+          enclose: { 'window.jQuery': '$' }
         },
         src: files.common.concat(files.bloodhound),
         dest: '<%= buildDir %>/bloodhound.js'
@@ -59,17 +59,27 @@ module.exports = function(grunt) {
         options: {
           mangle: false,
           beautify: true,
-          compress: false
+          compress: false,
+          enclose: { 'window.jQuery': '$' }
         },
         src: files.common.concat(files.typeahead),
         dest: '<%= buildDir %>/typeahead.jquery.js'
-
+      },
+      typeahead_nojquery: {
+        options: {
+          mangle: false,
+          beautify: true,
+          compress: false
+        },
+        src: files.common.concat(files.typeahead.slice(0,-1)),
+        dest: '<%= buildDir %>/typeahead-nojq.js'
       },
       bundle: {
         options: {
           mangle: false,
           beautify: true,
-          compress: false
+          compress: false,
+          enclose: { 'window.jQuery': '$' }
         },
         src: files.common.concat(files.bloodhound, files.typeahead),
         dest: '<%= buildDir %>/typeahead.bundle.js'
@@ -78,10 +88,23 @@ module.exports = function(grunt) {
       bundlemin: {
         options: {
           mangle: true,
-          compress: true
+          compress: true,
+          enclose: { 'window.jQuery': '$' }
         },
         src: files.common.concat(files.bloodhound, files.typeahead),
         dest: '<%= buildDir %>/typeahead.bundle.min.js'
+      }
+    },
+
+    bowerRequireWrapper:  {
+      target: {
+        files : {
+          '<%= buildDir %>/typeahead-amd.js' : ['<%= buildDir %>/typeahead-nojq.js']
+        },
+        modules: {
+          'jquery' : '$'
+        },
+        exports: 'Typeahead'
       }
     },
 
@@ -228,7 +251,7 @@ module.exports = function(grunt) {
   // -------
 
   grunt.registerTask('default', 'build');
-  grunt.registerTask('build', ['uglify', 'sed:version']);
+  grunt.registerTask('build', ['uglify', 'bowerRequireWrapper', 'sed:version']);
   grunt.registerTask('server', 'connect:server');
   grunt.registerTask('lint', 'jshint');
   grunt.registerTask('dev', 'parallel:dev');
@@ -245,4 +268,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-bower-require-wrapper');
+
 };
